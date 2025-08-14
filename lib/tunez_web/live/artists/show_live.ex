@@ -7,12 +7,8 @@ defmodule TunezWeb.Artists.ShowLive do
     {:ok, socket}
   end
 
-  def handle_params(_params, _url, socket) do
-    artist = %{
-      id: "test-artist-1",
-      name: "Artist Name",
-      biography: "Sample biography content here"
-    }
+  def handle_params(%{"id" => artist_id}, _url, socket) do
+    artist = Tunez.Music.read_artist_by_id!(artist_id)
 
     albums = [
       %{
@@ -152,7 +148,25 @@ defmodule TunezWeb.Artists.ShowLive do
   end
 
   def handle_event("destroy-artist", _params, socket) do
-    {:noreply, socket}
+    artist_id = socket.assigns.artist.id
+    artist = Tunez.Music.read_artist_by_id!(artist_id)
+
+    case Tunez.Music.delete_artist(artist) do
+      :ok ->
+        socket =
+          socket
+          |> put_flash(:info, "Artist deleted successfully.")
+          |> push_navigate(to: ~p"/")
+
+        {:noreply, socket}
+
+      {:error, reason} ->
+        socket =
+          socket
+          |> put_flash(:error, "Failed to delete artist: #{reason}")
+
+        {:noreply, socket}
+    end
   end
 
   def handle_event("destroy-album", _params, socket) do
