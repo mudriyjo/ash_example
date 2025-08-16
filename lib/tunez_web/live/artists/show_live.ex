@@ -8,16 +8,8 @@ defmodule TunezWeb.Artists.ShowLive do
   end
 
   def handle_params(%{"id" => artist_id}, _url, socket) do
-    artist = Tunez.Music.read_artist_by_id!(artist_id)
-
-    albums = [
-      %{
-        id: "test-album-1",
-        name: "Test Album",
-        year_released: 2023,
-        cover_image_url: nil
-      }
-    ]
+    artist = Tunez.Music.read_artist_by_id!(artist_id, load: [:albums])
+    albums = artist.albums
 
     socket =
       socket
@@ -169,8 +161,25 @@ defmodule TunezWeb.Artists.ShowLive do
     end
   end
 
-  def handle_event("destroy-album", _params, socket) do
-    {:noreply, socket}
+  def handle_event("destroy-album", %{"id" => album_id}, socket) do
+    album = Tunez.Music.read_album_by_id!(album_id)
+
+    case Tunez.Music.delete_album(album) do
+      :ok ->
+        socket =
+          socket
+          |> put_flash(:info, "Album deleted successfully.")
+          |> push_navigate(to: ~p"/artists/#{album.artist_id}")
+
+        {:noreply, socket}
+
+      {:error, reason} ->
+        socket =
+          socket
+          |> put_flash(:error, "Failed to delete album: #{reason}")
+
+        {:noreply, socket}
+    end
   end
 
   def handle_event("follow", _params, socket) do
