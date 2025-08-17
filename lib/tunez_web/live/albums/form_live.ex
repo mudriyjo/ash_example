@@ -2,8 +2,8 @@ defmodule TunezWeb.Albums.FormLive do
   use TunezWeb, :live_view
 
   def mount(%{"id" => album_id}, _session, socket) do
-    album = Tunez.Music.read_album_by_id!(album_id)
-    artist = Tunez.Music.read_artist_by_id!(album.artist_id)
+    album = Tunez.Music.read_album_by_id!(album_id, load: [:artist])
+    artist = album.artist
     form = Tunez.Music.form_to_update_album(album)
 
     socket =
@@ -15,9 +15,9 @@ defmodule TunezWeb.Albums.FormLive do
     {:ok, socket}
   end
 
-  def mount(%{"artist_id" => artist_id} = params, _session, socket) do
+  def mount(%{"artist_id" => artist_id}, _session, socket) do
     artist = Tunez.Music.read_artist_by_id!(artist_id)
-    form = Tunez.Music.form_to_create_album()
+    form = Tunez.Music.form_to_create_album(artist_id)
 
     socket =
       socket
@@ -119,8 +119,6 @@ defmodule TunezWeb.Albums.FormLive do
   end
 
   def handle_event("save", %{"form" => form_data}, socket) do
-    form_data = Map.put(form_data, "artist_id", socket.assigns.artist.id)
-
     case AshPhoenix.Form.submit(socket.assigns.form, params: form_data) do
       {:ok, album} ->
         socket =

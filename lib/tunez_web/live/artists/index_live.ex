@@ -12,8 +12,10 @@ defmodule TunezWeb.Artists.IndexLive do
   end
 
   def handle_params(_params, _url, socket) do
-    {:ok, artists} = Tunez.Music.read_artist()
-    artists = Enum.map(artists, fn x -> %{id: x.id, name: x.name} end)
+    {:ok, artists} = Tunez.Music.read_artist(load: [:albums])
+
+    artists =
+      Enum.map(artists, fn x -> %{id: x.id, name: x.name, cover: get_first_cover_image_url(x)} end)
 
     socket =
       socket
@@ -52,7 +54,7 @@ defmodule TunezWeb.Artists.IndexLive do
     ~H"""
     <div id={"artist-#{@artist.id}"} data-role="artist-card" class="relative mb-2">
       <.link navigate={~p"/artists/#{@artist.id}"}>
-        <.cover_image />
+        <.cover_image image={@artist.cover} />
       </.link>
     </div>
     <p class="flex justify-between">
@@ -185,6 +187,13 @@ defmodule TunezWeb.Artists.IndexLive do
       n when n >= 1_000_000 -> "#{Float.round(n / 1_000_000, 1)}M"
       n when n >= 1_000 -> "#{Float.round(n / 1_000, 1)}K"
       n -> n
+    end
+  end
+
+  defp get_first_cover_image_url(artist) do
+    case artist.albums do
+      [] -> nil
+      albums -> List.first(albums).cover_image_url
     end
   end
 end
