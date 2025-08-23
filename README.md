@@ -1,7 +1,5 @@
 ## Setup
 
-The versions of Elixir and Erlang we're using are specified in the `.tool-versions` file. If you're using `asdf` to manage installed versions of languages, run `asdf install` to install them. Tunez should work with any reasonably recent versions, but newer is better!
-
 Once you have those installed:
 
 - Run `mix setup` to install and setup Elixir dependencies
