@@ -1,4 +1,4 @@
-## Setup
+## Setup app
 
 Once you have those installed:
 
